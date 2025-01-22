@@ -1,0 +1,130 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  email        String        @unique
+  name         String?
+  password     String
+  accounts     Account[]
+  transactions Transaction[]
+  investments  Investment[]
+  budgets      Budget[]
+  goals        Goal[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Account {
+  id           String        @id @default(uuid())
+  name         String
+  type         AccountType
+  balance      Float
+  currency     String        @default("USD")
+  user         User          @relation(fields: [userId], references: [id])
+  userId       String
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  date        DateTime
+  description String
+  amount      Float
+  category    String
+  type        TransactionType
+  account     Account  @relation(fields: [accountId], references: [id])
+  accountId   String
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Investment {
+  id           String                  @id @default(uuid())
+  name         String
+  symbol       String
+  type         InvestmentType
+  quantity     Float
+  purchasePrice Float
+  currentPrice Float
+  user         User                    @relation(fields: [userId], references: [id])
+  userId       String
+  transactions InvestmentTransaction[]
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+}
+
+model InvestmentTransaction {
+  id           String     @id @default(uuid())
+  date         DateTime
+  quantity     Float
+  price        Float
+  type         InvestmentTransactionType
+  investment   Investment @relation(fields: [investmentId], references: [id])
+  investmentId String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+}
+
+model Budget {
+  id        String   @id @default(uuid())
+  category  String
+  amount    Float
+  spent     Float    @default(0)
+  month     Int
+  year      Int
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Goal {
+  id          String   @id @default(uuid())
+  name        String
+  targetAmount Float
+  currentAmount Float   @default(0)
+  deadline    DateTime?
+  user        User     @relation(fields: [userId], references: [id])
+  userId      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT_CARD
+  INVESTMENT
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+enum InvestmentType {
+  STOCK
+  BOND
+  MUTUAL_FUND
+  ETF
+  CRYPTO
+}
+
+enum InvestmentTransactionType {
+  BUY
+  SELL
+  DIVIDEND
+}
+
